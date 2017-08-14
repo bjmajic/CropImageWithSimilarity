@@ -99,6 +99,103 @@ namespace SK
 			
 		}
 
+
+		Eigen::Matrix2f m;
+		Eigen::Vector2f b;
+
+		SK::FindSimilarityTransform(from_points, to_points, m, b);
+
+		Eigen::Matrix3f totalMatrix;
+		totalMatrix.fill(0);
+		totalMatrix.block<2, 2>(0, 0) = m;
+		totalMatrix.block<2, 1>(0, 2) = b;
+		totalMatrix(2, 2) = 1;
+		Eigen::Matrix3f invMat = totalMatrix.inverse();
+
+
+		if (0 == nMethod)
+		{
+			AffineImageWithNN(inImgData, in_w, in_h, outImgData, out_w, out_h, invMat);
+		}
+		else if (1 == nMethod)
+		{
+			AffineImageWithBiLinear(inImgData, in_w, in_h, outImgData, out_w, out_h, invMat);
+		}
+		return true;
+	}
+
+	bool GetCropedImage(unsigned char* inImgData, int in_w, int in_h, float* realPoint, unsigned char* outImgData, int sizeMode /*= 2*/, int nMethod /*= 0*/)
+	{
+		int out_h = 0;
+		int out_w = 0;
+		Eigen::Vector2f to_point;
+		vector<Eigen::Matrix<float, 2, 1>, Eigen::aligned_allocator<Eigen::Vector2f>> to_points;
+		switch (sizeMode)
+		{
+		case 1:
+			out_w = 96;
+			out_h = 112;
+			to_point << 28.52f, 44.70f;
+			to_points.push_back(to_point);
+
+			to_point << 67.29f, 44.50f;
+			to_points.push_back(to_point);
+
+			to_point << 47.03f, 64.74f;
+			to_points.push_back(to_point);
+
+			to_point << 32.10f, 85.37f;
+			to_points.push_back(to_point);
+
+			to_point << 64.20f, 85.20f;
+			to_points.push_back(to_point);
+			break;
+		case 2:
+			out_w = 256;
+			out_h = 256;
+			to_point << 108.52f, 116.70f;
+			to_points.push_back(to_point);
+
+			to_point << 147.29f, 116.50f;
+			to_points.push_back(to_point);
+
+			to_point << 127.03f, 136.74f;
+			to_points.push_back(to_point);
+
+			to_point << 112.10f, 157.37f;
+			to_points.push_back(to_point);
+
+			to_point << 144.20f, 157.20f;
+			to_points.push_back(to_point);
+			break;
+		default:
+			out_w = 256;
+			out_h = 256;
+			to_point << 108.52f, 116.70f;
+			to_points.push_back(to_point);
+
+			to_point << 147.29f, 116.50f;
+			to_points.push_back(to_point);
+
+			to_point << 127.03f, 136.74f;
+			to_points.push_back(to_point);
+
+			to_point << 112.10f, 157.37f;
+			to_points.push_back(to_point);
+
+			to_point << 144.20f, 157.20f;
+			to_points.push_back(to_point);
+			break;
+		}
+
+		Eigen::Vector2f from_point;
+		vector<Eigen::Matrix<float, 2, 1>, Eigen::aligned_allocator<Eigen::Vector2f>> from_points;
+		for (int i = 0; i < 5; i++)
+		{
+			from_point << realPoint[(i << 1)], realPoint[(i << 1) + 1];
+			from_points.push_back(from_point);
+		}
+				
 		Eigen::Matrix2f m;
 		Eigen::Vector2f b;
 
@@ -118,57 +215,6 @@ namespace SK
 		else if (1 == nMethod)
 		{
 			AffineImageWithBiLinear(inImgData, in_w, in_h, outImgData, out_w, out_h, invMat);
-		}
-		return true;
-	}
-
-	bool GetCropedImage(unsigned char* inImgData, int in_w, int in_h, float* realPoint, unsigned char* outImgData, int nMethod /*= 0*/)
-	{
-		Eigen::Vector2f from_point;
-		vector<Eigen::Matrix<float, 2, 1>, Eigen::aligned_allocator<Eigen::Vector2f>> from_points;
-		for (int i = 0; i < 5; i++)
-		{
-			from_point << realPoint[(i << 1)], realPoint[(i << 1) + 1];
-			from_points.push_back(from_point);
-		}
-
-		Eigen::Vector2f to_point;
-		vector<Eigen::Matrix<float, 2, 1>, Eigen::aligned_allocator<Eigen::Vector2f>> to_points;
-		
-		to_point << 108.52f, 116.70f;
-		to_points.push_back(to_point);
-
-		to_point << 147.29f, 116.50f;
-		to_points.push_back(to_point);
-
-		to_point << 127.03f, 136.74f;
-		to_points.push_back(to_point);
-
-		to_point << 112.10f, 157.37f;
-		to_points.push_back(to_point);
-
-		to_point << 144.20f, 157.20f;
-		to_points.push_back(to_point);
-
-		Eigen::Matrix2f m;
-		Eigen::Vector2f b;
-
-		SK::FindSimilarityTransform(from_points, to_points, m, b);
-
-		Eigen::Matrix3f totalMatrix;
-		totalMatrix.fill(0);
-		totalMatrix.block<2, 2>(0, 0) = m;
-		totalMatrix.block<2, 1>(0, 2) = b;
-		totalMatrix(2, 2) = 1;
-		Eigen::Matrix3f invMat = totalMatrix.inverse();
-
-		if (0 == nMethod)
-		{
-			AffineImageWithNN(inImgData, in_w, in_h, outImgData, 256, 256, invMat);
-		}
-		else if (1 == nMethod)
-		{
-			AffineImageWithBiLinear(inImgData, in_w, in_h, outImgData, 256, 256, invMat);
 		}
 		return true;
 	}

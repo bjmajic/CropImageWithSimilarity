@@ -31,9 +31,10 @@ namespace SK
 			int_w, int_h: 输入图像的宽和高
 			realPoint： 输入图像的关键点（对齐的依据）
 			outImgData：对齐后的图像
+			sizeMode: 尺寸大小[w, h] 1--[96 112] 2--[256 256]
 			nMethod： 插值方式  0--最近邻  1--双线性
 	*/
-	bool GetCropedImage(unsigned char* inImgData, int in_w, int in_h, float* realPoint, unsigned char* outImgData, int nMethod = 0);
+	bool GetCropedImage(unsigned char* inImgData, int in_w, int in_h, float* realPoint, unsigned char* outImgData, int sizeMode = 2, int nMethod = 0);
 
 	void AffineImageWithBiLinear(unsigned char* srcImage, int srcW, int srcH, unsigned char* destImage, int desW, int desH, const Eigen::Matrix3f& invMat);
 	void AffineImageWithNN(unsigned char* srcImage, int srcW, int srcH, unsigned char* destImage, int desW, int desH, const Eigen::Matrix3f& invMat);

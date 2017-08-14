@@ -36,6 +36,8 @@ void fun1(string filename, int threadid)
 		if (faceInfo->size() > 0)
 		{
 			FacePts facePts = (*faceInfo)[0].facePts;
+			
+			
 			//Eigen::Vector2f from_point1;
 			//vector<Eigen::Matrix<float, 2, 1>, Eigen::aligned_allocator<Eigen::Vector2f>> from_points;
 			float realPoints[10];
@@ -89,6 +91,8 @@ void fun2(string filename, int threadid)
 		if (faceInfo->size() > 0)
 		{
 			FacePts facePts = (*faceInfo)[0].facePts;
+
+			
 			//Eigen::Vector2f from_point1;
 			//vector<Eigen::Matrix<float, 2, 1>, Eigen::aligned_allocator<Eigen::Vector2f>> from_points;
 			float realPoints[10];
@@ -108,11 +112,66 @@ void fun2(string filename, int threadid)
 			unsigned char *desImage = new unsigned char[rowNumber * colNumber * 3];
 			memset(desImage, 0, rowNumber * colNumber * 3);
 
-			SK::GetCropedImage(bmp, w, h, realPoints, desImage, 0);
+			SK::GetCropedImage(bmp, w, h, realPoints, desImage, 2, 0);
 			std::string saveFileName = "nn_" + std::to_string(threadid) + ".jpg";
 			SaveBGR24JPG(desImage, colNumber, rowNumber, saveFileName.c_str(), 100);
 
-			SK::GetCropedImage(bmp, w, h, realPoints, desImage, 1);
+			SK::GetCropedImage(bmp, w, h, realPoints, desImage, 2, 1);
+			std::string saveFileName2 = "bilinear_" + std::to_string(threadid) + ".jpg";
+			SaveBGR24JPG(desImage, colNumber, rowNumber, saveFileName2.c_str(), 100);
+
+			delete[] desImage;
+			SDKfree(bmp);
+		}
+	}
+
+	cout << "thread id = " << threadid << " , has end" << endl;
+}
+
+void fun3(string filename, int threadid)
+{
+	float threshold[3] = { 0.6f, 0.7f, 0.72f };
+	float factor = 0.709f;
+	int minSize = 40;
+	std::vector<FaceInfo> *faceInfo = nullptr;
+	int w = 0, h = 0;
+	unsigned char *bmp = nullptr;
+
+	if (LoadJPG(filename.c_str(), bmp, w, h))
+	{
+
+		faceInfo = Detect(bmp, w, h, minSize, threshold, factor);
+
+
+		if (faceInfo->size() > 0)
+		{
+			FacePts facePts = (*faceInfo)[0].facePts;
+
+			
+			//Eigen::Vector2f from_point1;
+			//vector<Eigen::Matrix<float, 2, 1>, Eigen::aligned_allocator<Eigen::Vector2f>> from_points;
+			float realPoints[10];
+
+
+			for (int j = 0; j < 5; j++)
+			{
+				//from_point1 << facePts.y[j], facePts.x[j];
+				//from_points.push_back(from_point1);
+				realPoints[j * 2] = facePts.y[j];
+				realPoints[j * 2 + 1] = facePts.x[j];
+
+			}
+
+			int rowNumber = 112;
+			int colNumber = 96;
+			unsigned char *desImage = new unsigned char[rowNumber * colNumber * 3];
+			memset(desImage, 0, rowNumber * colNumber * 3);
+
+			SK::GetCropedImage(bmp, w, h, realPoints, desImage, 1, 0);
+			std::string saveFileName = "nn_" + std::to_string(threadid) + ".jpg";
+			SaveBGR24JPG(desImage, colNumber, rowNumber, saveFileName.c_str(), 100);
+
+			SK::GetCropedImage(bmp, w, h, realPoints, desImage, 1, 1);
 			std::string saveFileName2 = "bilinear_" + std::to_string(threadid) + ".jpg";
 			SaveBGR24JPG(desImage, colNumber, rowNumber, saveFileName2.c_str(), 100);
 
@@ -132,5 +191,8 @@ void main()
 	fun1(imgpath2, 2);
 	fun2(imgpath, 3);
 	fun2(imgpath2, 4);
+
+	fun3(imgpath, 5);
+	fun3(imgpath2, 6);
 	system("pause");
 }
